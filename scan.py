@@ -12,34 +12,45 @@ from PIL import Image
 import subprocess
 
 def scan_pages(device, start_page, increment):
-    i = start_page
-    #ADF should stop once the last page is scanned
-    for page in device.multi_scan():
-        image = page.snap()
-        image.save('out%0d.pnm', i)
-        image.close()
-        i += increment
-    return i
+    i = start_page - increment
+    #get an iterator over all the pages
+    iter = device.multi_scan()
+    #ADF should stop once the last page is scanned with a StopIteration error
+    while True:
+        print('Scanning page %d' % i)
+        try:
+            page = iter.next()
+            i += increment
+            page.save('out%0d.pnm' % i)
+            page.close()
+        except StopIteration:
+            break
+    return i  
 
 #We only have one scanner, so just use the first one returned.  Otherwise, we'd
 #want to scan for the make, or pass it in on the CLI
 sane.init()
 devices = sane.get_devices()
+print(devices)
+print('Selecting the first device by default : {}'.format(devices[0][0]))
 device = sane.open(devices[0][0])
 device.mode = 'gray'
+device.resolution = 300
+print('Device parameters:')
+print(device.get_parameters())
 
 #Use dev.get_options() to see everything we can set
-device.start()
+#device.start()
 
 # Could check and fix the increment, but it is only for the filename
 # and we only care about the sort order
 print('Scanning in front side of pages')
 num_pages = scan_pages(device, 1, 2)
-print('Scanned in %d pages', num_pages)
+print('Scanned in %d pages' % num_pages)
 if is_duplex:
     # Give time to flip and straighten the pages
     pause = input("Flip (but don't reorder) the pages and place on the document feeder and press Enter - press any other key to cancel the duplex and generate a PDF with the already scanned pages")
-    if pause == '\0C':
+    if pause == '':
         print('Scanning back side of pages')
         scan_pages(device, num_pages, -2)
     
