@@ -12,20 +12,21 @@ from PIL import Image
 import subprocess
 
 def scan_pages(device, start_page, increment):
-    i = start_page - increment
+    num_pages = 0
     #get an iterator over all the pages
     iter = device.multi_scan()
     #ADF should stop once the last page is scanned with a StopIteration error
     while True:
-        print('Scanning page %d' % i)
+        print('Scanning page %d' % num_pages)
         try:
             page = iter.next()
-            i += increment
-            page.save('out%0d.pnm' % i)
+            num_pages += 1
+            file_no = start_page+(num_pages-1)*increment
+            page.save('out%04d.pnm' % file_no)
             page.close()
         except StopIteration:
             break
-    return i  
+    return num_pages  
 
 #We only have one scanner, so just use the first one returned.  Otherwise, we'd
 #want to scan for the make, or pass it in on the CLI
@@ -52,14 +53,14 @@ if is_duplex:
     pause = input("Flip (but don't reorder) the pages and place on the document feeder and press Enter - press any other key to cancel the duplex and generate a PDF with the already scanned pages")
     if pause == '':
         print('Scanning back side of pages')
-        scan_pages(device, num_pages, -2)
+        scan_pages(device, num_pages * 2, -2)
     
 # Is there a python library to ImageMagik?  Right now, just shell out
 # to convert the pnm files to a multi-page PDF - requires imagemagik to be
 # installed and on the path
 
 subprocess.run(['convert', '*.pnm', pdf_file])
-
+print('Concatenated files to %s' % pdf_file)
 
 
 
