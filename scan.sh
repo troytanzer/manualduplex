@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Add CLI options
-- keep current dir, otherwise wipe it
-- set temp dir
-- set output file name
-- skip duplex
+#- keep current dir, otherwise wipe it
+#- set temp dir
+#- set output file name
+#- skip duplex
 
 # Default output to current dir unless specified above
 # Reverse numbers on the second scan
