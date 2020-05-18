@@ -42,12 +42,12 @@ def scan_pages(device, start_page, increment, tmp_file):
     iter = device.multi_scan()
     #ADF should stop once the last page is scanned with a StopIteration error
     while True:
-        print('Scanning page %d' % num_pages)
+        print('Scanning page {:d}'.format(num_pages))
         try:
             page = iter.next()
             num_pages += 1
             file_no = start_page+(num_pages-1)*increment
-            save_file = tmp_file % file_no
+            save_file = tmp_file.format(file_no)
             print('Saving to {}'.format(save_file))
             page.save(save_file)
             page.close()
@@ -72,7 +72,7 @@ test_dir = Path(tmp_dir)
 if not test_dir.exists():
     test_dir.mkdir(parents=True)
     
-outfilepattern=os.path.join(tmp_dir, 'out%04d.pnm')
+outfilepattern=os.path.join(tmp_dir, 'out{:04d}.pnm')
 
 # Could check and fix the increment, but it is only for the filename
 # and we only care about the sort order
@@ -83,7 +83,7 @@ else:
     increment = 1
     
 num_pages = scan_pages(device, 1, increment, outfilepattern)
-print('Scanned in %d pages' % num_pages)
+print('Scanned in {:d} pages'.format(num_pages))
 if is_duplex:
     # Give time to flip and straighten the pages
     pause = input("Flip (but don't reorder) the pages and place on the document feeder and press Enter - press any other key to cancel the duplex and generate a PDF with the already scanned pages")
@@ -97,7 +97,7 @@ if is_duplex:
 # Note that this depends on convert ordering the files correctly, which it
 # does right now, otherwise we'd want to glob the files in the dir and sort 1st
 subprocess.run(['convert', '{}/*.pnm'.format(tmp_dir), pdf_file])
-print('Concatenated files to %s' % pdf_file)
+print('Concatenated files to {}'.format(pdf_file))
 if clean_tmp:
     print('Cleaning up temp .pnm files from {}'.format(tmp_dir))
     dir_path = Path(tmp_dir)
